@@ -81,8 +81,6 @@ def getPeers(box):
                 if (bbox not in already):
                     yield (bbox)
         already[bbox] = bbox
-    # print("### ", box)
-    pass
 
 def eliminate(values):
     """Apply the eliminate strategy to a Sudoku puzzle
@@ -109,15 +107,9 @@ def eliminate(values):
     return values
 
 
-def cross(a, b):
-    return [s + t for s in a for t in b]
-
-
 def getRows(box):
     already = {box: box}
     foo = "123456789"
-    baba = "ABCDEFGHI"
-    bar = box[1]
     boo = box[0]
     for i in foo:
         bbox = boo + i
@@ -128,10 +120,8 @@ def getRows(box):
 
 def getColumns(box):
     already = {box: box}
-    foo = "123456789"
     baba = "ABCDEFGHI"
     bar = box[1]
-    boo = box[0]
     for i in baba:
         bbox = i + bar
         if (bbox not in already):
@@ -142,10 +132,6 @@ def getColumns(box):
 
 def getSquare(box):
     already = {box: box}
-    foo = "123456789"
-    baba = "ABCDEFGHI"
-    bar = box[1]
-    boo = box[0]
     square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
     for i in square_units:
         if box in i:
@@ -296,7 +282,7 @@ def search(values):
         copy_copy_values[found_key] = value
         # print(iteration, "search")
         # display(copy_copy_values)
-        ret = search(copy_copy_values, iteration + 1)
+        ret = search(copy_copy_values)
         if ret:
             # print(iteration, "found")
             return ret
@@ -314,7 +300,6 @@ def solve(grid):
     ----------
     grid(string)
         a string representing a sudoku grid.
-        
         Ex. '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
 
     Returns
