@@ -3,19 +3,8 @@ import sys
 
 from utils import *
 
-row_units = [cross(r, cols) for r in rows]
-column_units = [cross(rows, c) for c in cols]
-square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-unitlist = row_units + column_units + square_units
 
 # TODO: Update the unit list to add the new diagonal units
-unitlist = unitlist
-
-
-# Must be called after all units (including diagonals) are added to the unitlist
-units = extract_units(unitlist, boxes)
-peers = extract_peers(units, boxes)
-
 
 def naked_twins(values):
     """Eliminate values using the naked twins strategy.
@@ -25,15 +14,8 @@ def naked_twins(values):
     those two digits can be eliminated from the possible assignments of all other
     boxes in the same unit.
 
-    Parameters
-    ----------
-    values(dict)
-        a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns
-    -------
-    dict
-        The values dictionary with the naked twins eliminated from peers
+    :param dict values: a dictionary of the form {'box_name': '123456789', ...}
+    :returns: dict. The values dictionary with the naked twins eliminated from peers
 
     Notes
     -----
@@ -66,21 +48,22 @@ def getPeers(box):
     boo = box[0]
     for i in foo:
         bbox = boo + i
-        if (bbox not in already):
+        if bbox not in already:
             yield (bbox)
         already[bbox] = bbox
     for i in baba:
         bbox = i + bar
-        if (bbox not in already):
+        if bbox not in already:
             yield (bbox)
         already[bbox] = bbox
     square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
     for i in square_units:
         if box in i:
             for bbox in i:
-                if (bbox not in already):
+                if bbox not in already:
                     yield (bbox)
         already[bbox] = bbox
+
 
 def eliminate(values):
     """Apply the eliminate strategy to a Sudoku puzzle
@@ -90,20 +73,13 @@ def eliminate(values):
 
     Parameters
     ----------
-    values(dict)
-        a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns
-    -------
-    dict
-        The values dictionary with the assigned values eliminated from peers
+    :param dict values: a dictionary of the form {'box_name': '123456789', ...}
+    :returns: dict. The values dictionary with the assigned values eliminated from peers
     """
     for key, value in values.items():
-        if (len(value) == 1):
+        if len(value) == 1:
             for i in getPeers(key):
                 values[i] = values[i].replace(value, '')
-                # print(i)
-
     return values
 
 
@@ -113,7 +89,7 @@ def getRows(box):
     boo = box[0]
     for i in foo:
         bbox = boo + i
-        if (bbox not in already):
+        if bbox not in already:
             yield (bbox)
         already[bbox] = bbox
 
@@ -124,7 +100,7 @@ def getColumns(box):
     bar = box[1]
     for i in baba:
         bbox = i + bar
-        if (bbox not in already):
+        if bbox not in already:
             # print(bbox)
             yield (bbox)
         already[bbox] = bbox
@@ -136,16 +112,15 @@ def getSquare(box):
     for i in square_units:
         if box in i:
             for bbox in i:
-                if (bbox not in already):
+                if bbox not in already:
                     yield (bbox)
             already[bbox] = bbox
 
 
-def containsValue(value, peers, bvalues, key):
+def containsValue(value, peers, values, key):
     concat = ""
     for i in peers:
-        concat = concat + bvalues[i]
-    # print(concat, key, value)
+        concat = concat + values[i]
     return value not in concat
 
 
@@ -155,22 +130,17 @@ def only_choice(bvalues):
     The only choice strategy says that if only one box in a unit allows a certain
     digit, then that box must be assigned that digit.
 
-    Parameters
-    ----------
-    values(dict)
-        a dictionary of the form {'box_name': '123456789', ...}
+    :param dict values: a dictionary of the form {'box_name': '123456789', ...}
+    :returns: dict.
 
-    Returns
-    -------
-    dict
-        The values dictionary with all single-valued boxes assigned
+    Returns The values dictionary with all single-valued boxes assigned
 
     Notes
     -----
     You should be able to complete this function by copying your code from the classroom
     """
     for key, values in bvalues.items():
-        if (len(values) > 1):
+        if len(values) > 1:
             for value in values:
                 if (containsValue(value, getPeers(key), bvalues, key)):
                     bvalues[key] = value
@@ -180,24 +150,17 @@ def only_choice(bvalues):
                     bvalues[key] = value
                 if (containsValue(value, getSquare(key), bvalues, key)):
                     bvalues[key] = value
-                    # print("replace",key,values,value)
 
     return bvalues
 
 
 def reduce_puzzle(values):
     """Reduce a Sudoku puzzle by repeatedly applying all constraint strategies
+    :param dict values: a dictionary of the form {'box_name': '123456789', ...}
+    :return: dict or False
 
-    Parameters
-    ----------
-    values(dict)
-        a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns
-    -------
-    dict or False
-        The values dictionary after continued application of the constraint strategies
-        no longer produces any changes, or False if the puzzle is unsolvable 
+    Returns the values dictionary after continued application of the constraint strategies no longer produces any changes,
+    or False if the puzzle is unsolvable.
     """
     stalled = False
     while not stalled:
@@ -224,33 +187,19 @@ def search(values):
     """Apply depth first search to solve Sudoku puzzles in order to solve puzzles
     that cannot be solved by repeated reduction alone.
 
-    Parameters
-    ----------
-    values(dict)
-        a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns
-    -------
-    dict or False
-        The values dictionary with all boxes assigned or False
+    :param dict values: a dictionary of the form {'box_name': '123456789', ...}
+    :returns: dict or False. The values dictionary with all boxes assigned or False
 
     Notes
     -----
     You should be able to complete this function by copying your code from the classroom
     and extending it to call the naked twins strategy.
     """
-    "Using depth-first search and propagation, create a search tree and solve the sudoku."
     # First, reduce the puzzle using the previous function
     copy_values = copy.deepcopy(values)
-    # print(iteration, "b")
-    # display(copy_values)
     copy_values = reduce_puzzle(copy_values)
     if copy_values is False:
-        return False  ## Failed earlier
-    # print(iteration, "a")
-    # display(copy_values)
-    # for x in copy_values:
-    #    print (x, copy_values[x])
+        return False
 
     # Choose one of the unfilled squares with the fewest possibilities
     found_key = "A1"
@@ -259,35 +208,25 @@ def search(values):
     solved = True
 
     for key, value in copy_values.items():
-        if (len(value) > 1):
+        if len(value) > 1:
             solved = False
 
     if solved:
-        # print(iteration, "found")
         return copy_values
 
     for key, value in copy_values.items():
-        if (len(value) == 1):
-            solved = True
-        else:
-            solved = False
-        if (len(value) < length and len(value) > 1):
+        if length > len(value) > 1:
             length = len(value)
             found_values = copy_values[key]
             found_key = key
 
     for value in found_values:
-        # print(iteration,found_key, value, found_values)
         copy_copy_values = copy.deepcopy(values)
         copy_copy_values[found_key] = value
-        # print(iteration, "search")
-        # display(copy_copy_values)
         ret = search(copy_copy_values)
         if ret:
-            # print(iteration, "found")
             return ret
 
-    # print(iteration,"not found", found_key, found_values)
     return False
     # Now use recursion to solve each one of the resulting sudokus, and if one returns a value (not False), return that answer!
     # If you're stuck, see the solution.py tab!
@@ -298,14 +237,9 @@ def solve(grid):
 
     Parameters
     ----------
-    grid(string)
-        a string representing a sudoku grid.
-        Ex. '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-
-    Returns
-    -------
-    dict or False
-        The dictionary representation of the final sudoku grid or False if no solution exists.
+    :param str grid: a string representing a sudoku grid.
+    Ex. '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+    :returns: dict or False. The dictionary representation of the final sudoku grid or False if no solution exists.
     """
     values = grid2values(grid)
     values = search(values)
@@ -320,8 +254,8 @@ if __name__ == "__main__":
 
     try:
         import PySudoku
-        PySudoku.play(grid2values(diag_sudoku_grid), result, history)
 
+        PySudoku.play(grid2values(diag_sudoku_grid), result, history)
     except SystemExit:
         pass
     except:
