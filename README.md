@@ -1,5 +1,7 @@
 # Artificial Intelligence Nanodegree Program Resources
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4b48be5fcd1145e2abbea9a317c3a781)](https://app.codacy.com/app/avrabe/artificial-intelligence?utm_source=github.com&utm_medium=referral&utm_content=avrabe/artificial-intelligence&utm_campaign=badger)
+
 ## Classroom Exercises
 
 ### 1. Constraint Satisfaction Problems
