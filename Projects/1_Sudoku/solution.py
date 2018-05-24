@@ -1,6 +1,7 @@
+import copy
+import sys
 
 from utils import *
-
 
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
@@ -57,6 +58,32 @@ def naked_twins(values):
     raise NotImplementedError
 
 
+def getPeers(box):
+    already = {box: box}
+    foo = "123456789"
+    baba = "ABCDEFGHI"
+    bar = box[1]
+    boo = box[0]
+    for i in foo:
+        bbox = boo + i
+        if (bbox not in already):
+            yield (bbox)
+        already[bbox] = bbox
+    for i in baba:
+        bbox = i + bar
+        if (bbox not in already):
+            yield (bbox)
+        already[bbox] = bbox
+    square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
+    for i in square_units:
+        if box in i:
+            for bbox in i:
+                if (bbox not in already):
+                    yield (bbox)
+        already[bbox] = bbox
+    # print("### ", box)
+    pass
+
 def eliminate(values):
     """Apply the eliminate strategy to a Sudoku puzzle
 
@@ -73,11 +100,70 @@ def eliminate(values):
     dict
         The values dictionary with the assigned values eliminated from peers
     """
-    # TODO: Copy your code from the classroom to complete this function
-    raise NotImplementedError
+    for key, value in values.items():
+        if (len(value) == 1):
+            for i in getPeers(key):
+                values[i] = values[i].replace(value, '')
+                # print(i)
+
+    return values
 
 
-def only_choice(values):
+def cross(a, b):
+    return [s + t for s in a for t in b]
+
+
+def getRows(box):
+    already = {box: box}
+    foo = "123456789"
+    baba = "ABCDEFGHI"
+    bar = box[1]
+    boo = box[0]
+    for i in foo:
+        bbox = boo + i
+        if (bbox not in already):
+            yield (bbox)
+        already[bbox] = bbox
+
+
+def getColumns(box):
+    already = {box: box}
+    foo = "123456789"
+    baba = "ABCDEFGHI"
+    bar = box[1]
+    boo = box[0]
+    for i in baba:
+        bbox = i + bar
+        if (bbox not in already):
+            # print(bbox)
+            yield (bbox)
+        already[bbox] = bbox
+
+
+def getSquare(box):
+    already = {box: box}
+    foo = "123456789"
+    baba = "ABCDEFGHI"
+    bar = box[1]
+    boo = box[0]
+    square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
+    for i in square_units:
+        if box in i:
+            for bbox in i:
+                if (bbox not in already):
+                    yield (bbox)
+            already[bbox] = bbox
+
+
+def containsValue(value, peers, bvalues, key):
+    concat = ""
+    for i in peers:
+        concat = concat + bvalues[i]
+    # print(concat, key, value)
+    return value not in concat
+
+
+def only_choice(bvalues):
     """Apply the only choice strategy to a Sudoku puzzle
 
     The only choice strategy says that if only one box in a unit allows a certain
@@ -97,8 +183,20 @@ def only_choice(values):
     -----
     You should be able to complete this function by copying your code from the classroom
     """
-    # TODO: Copy your code from the classroom to complete this function
-    raise NotImplementedError
+    for key, values in bvalues.items():
+        if (len(values) > 1):
+            for value in values:
+                if (containsValue(value, getPeers(key), bvalues, key)):
+                    bvalues[key] = value
+                if (containsValue(value, getRows(key), bvalues, key)):
+                    bvalues[key] = value
+                if (containsValue(value, getColumns(key), bvalues, key)):
+                    bvalues[key] = value
+                if (containsValue(value, getSquare(key), bvalues, key)):
+                    bvalues[key] = value
+                    # print("replace",key,values,value)
+
+    return bvalues
 
 
 def reduce_puzzle(values):
@@ -115,8 +213,25 @@ def reduce_puzzle(values):
         The values dictionary after continued application of the constraint strategies
         no longer produces any changes, or False if the puzzle is unsolvable 
     """
-    # TODO: Copy your code from the classroom and modify it to complete this function
-    raise NotImplementedError
+    stalled = False
+    while not stalled:
+        # Check how many boxes have a determined value
+        solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
+
+        # Your code here: Use the Eliminate Strategy
+        eliminate(values)
+
+        # Your code here: Use the Only Choice Strategy
+        only_choice(values)
+
+        # Check how many boxes have a determined value, to compare
+        solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
+        # If no new values were added, stop the loop.
+        stalled = solved_values_before == solved_values_after
+        # Sanity check, return False if there is a box with zero available values:
+        if len([box for box in values.keys() if len(values[box]) == 0]):
+            return False
+    return values
 
 
 def search(values):
@@ -138,8 +253,58 @@ def search(values):
     You should be able to complete this function by copying your code from the classroom
     and extending it to call the naked twins strategy.
     """
-    # TODO: Copy your code from the classroom to complete this function
-    raise NotImplementedError
+    "Using depth-first search and propagation, create a search tree and solve the sudoku."
+    # First, reduce the puzzle using the previous function
+    copy_values = copy.deepcopy(values)
+    # print(iteration, "b")
+    # display(copy_values)
+    copy_values = reduce_puzzle(copy_values)
+    if copy_values is False:
+        return False  ## Failed earlier
+    # print(iteration, "a")
+    # display(copy_values)
+    # for x in copy_values:
+    #    print (x, copy_values[x])
+
+    # Choose one of the unfilled squares with the fewest possibilities
+    found_key = "A1"
+    found_values = ""
+    length = sys.maxsize
+    solved = True
+
+    for key, value in copy_values.items():
+        if (len(value) > 1):
+            solved = False
+
+    if solved:
+        # print(iteration, "found")
+        return copy_values
+
+    for key, value in copy_values.items():
+        if (len(value) == 1):
+            solved = True
+        else:
+            solved = False
+        if (len(value) < length and len(value) > 1):
+            length = len(value)
+            found_values = copy_values[key]
+            found_key = key
+
+    for value in found_values:
+        # print(iteration,found_key, value, found_values)
+        copy_copy_values = copy.deepcopy(values)
+        copy_copy_values[found_key] = value
+        # print(iteration, "search")
+        # display(copy_copy_values)
+        ret = search(copy_copy_values, iteration + 1)
+        if ret:
+            # print(iteration, "found")
+            return ret
+
+    # print(iteration,"not found", found_key, found_values)
+    return False
+    # Now use recursion to solve each one of the resulting sudokus, and if one returns a value (not False), return that answer!
+    # If you're stuck, see the solution.py tab!
 
 
 def solve(grid):
