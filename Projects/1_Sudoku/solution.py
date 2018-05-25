@@ -1,10 +1,21 @@
 import copy
+import itertools
 import sys
 
 from utils import *
 
+row_units = [cross(r, cols) for r in rows]
+column_units = [cross(rows, c) for c in cols]
+square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
+diagonals1 = [[r + c for r, c in itertools.zip_longest(rows, cols)]]
+diagonals2 = [[r + c for r, c in itertools.zip_longest(rows[::-1], cols)]]
 
-# TODO: Update the unit list to add the new diagonal units
+unitlist = row_units + column_units + square_units + diagonals1 + diagonals2
+
+# Must be called after all units (including diagonals) are added to the unitlist
+units = extract_units(unitlist, boxes)
+peers = extract_peers(units, boxes)
+
 
 def naked_twins(values):
     """Eliminate values using the naked twins strategy.
@@ -40,31 +51,6 @@ def naked_twins(values):
     raise NotImplementedError
 
 
-def getPeers(box):
-    already = {box: box}
-    foo = "123456789"
-    baba = "ABCDEFGHI"
-    bar = box[1]
-    boo = box[0]
-    for i in foo:
-        bbox = boo + i
-        if bbox not in already:
-            yield (bbox)
-        already[bbox] = bbox
-    for i in baba:
-        bbox = i + bar
-        if bbox not in already:
-            yield (bbox)
-        already[bbox] = bbox
-    square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
-    for i in square_units:
-        if box in i:
-            for bbox in i:
-                if bbox not in already:
-                    yield (bbox)
-        already[bbox] = bbox
-
-
 def eliminate(values):
     """Apply the eliminate strategy to a Sudoku puzzle
 
@@ -76,55 +62,15 @@ def eliminate(values):
     :param dict values: a dictionary of the form {'box_name': '123456789', ...}
     :returns: dict. The values dictionary with the assigned values eliminated from peers
     """
-    for key, value in values.items():
-        if len(value) == 1:
-            for i in getPeers(key):
-                values[i] = values[i].replace(value, '')
+    solved_values = [box for box in values.keys() if len(values[box]) == 1]
+    for box in solved_values:
+        digit = values[box]
+        for peer in peers[box]:
+            values[peer] = values[peer].replace(digit, '')
     return values
 
 
-def getRows(box):
-    already = {box: box}
-    foo = "123456789"
-    boo = box[0]
-    for i in foo:
-        bbox = boo + i
-        if bbox not in already:
-            yield (bbox)
-        already[bbox] = bbox
-
-
-def getColumns(box):
-    already = {box: box}
-    baba = "ABCDEFGHI"
-    bar = box[1]
-    for i in baba:
-        bbox = i + bar
-        if bbox not in already:
-            # print(bbox)
-            yield (bbox)
-        already[bbox] = bbox
-
-
-def getSquare(box):
-    already = {box: box}
-    square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
-    for i in square_units:
-        if box in i:
-            for bbox in i:
-                if bbox not in already:
-                    yield (bbox)
-            already[bbox] = bbox
-
-
-def containsValue(value, peers, values, key):
-    concat = ""
-    for i in peers:
-        concat = concat + values[i]
-    return value not in concat
-
-
-def only_choice(bvalues):
+def only_choice(values):
     """Apply the only choice strategy to a Sudoku puzzle
 
     The only choice strategy says that if only one box in a unit allows a certain
@@ -139,19 +85,12 @@ def only_choice(bvalues):
     -----
     You should be able to complete this function by copying your code from the classroom
     """
-    for key, values in bvalues.items():
-        if len(values) > 1:
-            for value in values:
-                if (containsValue(value, getPeers(key), bvalues, key)):
-                    bvalues[key] = value
-                if (containsValue(value, getRows(key), bvalues, key)):
-                    bvalues[key] = value
-                if (containsValue(value, getColumns(key), bvalues, key)):
-                    bvalues[key] = value
-                if (containsValue(value, getSquare(key), bvalues, key)):
-                    bvalues[key] = value
-
-    return bvalues
+    for unit in unitlist:
+        for digit in '123456789':
+            dplaces = [box for box in unit if digit in values[box]]
+            if len(dplaces) == 1:
+                values[dplaces[0]] = digit
+    return values
 
 
 def reduce_puzzle(values):
