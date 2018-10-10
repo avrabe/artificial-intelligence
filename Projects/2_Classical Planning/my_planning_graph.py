@@ -1,7 +1,4 @@
-
-from itertools import chain, combinations
-from aimacode.planning import Action
-from aimacode.utils import expr
+from itertools import chain, product
 
 from layers import BaseActionLayer, BaseLiteralLayer, makeNoOp, make_node
 
@@ -19,9 +16,12 @@ class ActionLayer(BaseActionLayer):
         --------
         layers.ActionNode
         """
-        # TODO: implement this function
-        raise NotImplementedError
-
+        ret = False  # type: bool
+        for (effectA, effectB) in product(self.children[actionA], self.children[actionB]):
+            if ~effectA == effectB:
+                ret = True
+                break
+        return ret
 
     def _interference(self, actionA, actionB):
         """ Return True if the effects of either action negate the preconditions of the other 
@@ -34,8 +34,13 @@ class ActionLayer(BaseActionLayer):
         --------
         layers.ActionNode
         """
-        # TODO: implement this function
-        raise NotImplementedError
+        ret = False  # type: bool
+        for (effectA, effectB) in chain(product(self.children[actionA], self.parents[actionB]),
+                                        product(self.children[actionB], self.parents[actionA])):
+            if ~effectA == effectB:
+                ret = True
+                break
+        return ret
 
     def _competing_needs(self, actionA, actionB):
         """ Return True if any preconditions of the two actions are pairwise mutex in the parent layer
@@ -50,7 +55,14 @@ class ActionLayer(BaseActionLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        raise NotImplementedError
+        ret = True  # type: bool
+        for (effectA, effectB) in chain(product(self.parent_layer, self.parents[actionB]),
+                                        product(self.parent_layer, self.parents[actionA])):
+            print(actionA, actionB, effectA, effectB)
+            if self.is_mutex(effectA, effectB):
+                ret = False
+                break
+        return ret
 
 
 class LiteralLayer(BaseLiteralLayer):
@@ -72,7 +84,7 @@ class LiteralLayer(BaseLiteralLayer):
     def _negation(self, literalA, literalB):
         """ Return True if two literals are negations of each other """
         # TODO: implement this function
-        raise NotImplementedError
+        return not literalA == literalB
 
 
 class PlanningGraph:
@@ -101,7 +113,7 @@ class PlanningGraph:
         # make no-op actions that persist every literal to the next layer
         no_ops = [make_node(n, no_op=True) for n in chain(*(makeNoOp(s) for s in problem.state_map))]
         self._actionNodes = no_ops + [make_node(a) for a in problem.actions_list]
-        
+
         # initialize the planning graph by finding the literals that are in the
         # first layer and finding the actions they they should be connected to
         literals = [s if f else ~s for f, s in zip(state, problem.state_map)]
