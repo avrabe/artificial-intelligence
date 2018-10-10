@@ -55,13 +55,16 @@ class ActionLayer(BaseActionLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        ret = True  # type: bool
-        for (effectA, effectB) in chain(product(self.parent_layer, self.parents[actionB]),
-                                        product(self.parent_layer, self.parents[actionA])):
+        ret = False  # type: bool
+        #        for (effectA, effectB) in chain(product(self.parent_layer, self.parents[actionB]),
+        #                                        product(self.parent_layer, self.parents[actionA])):
+        for (effectA, effectB) in product(self.parents[actionA], self.parents[actionB]):
             print(actionA, actionB, effectA, effectB)
-            if self.is_mutex(effectA, effectB):
-                ret = False
+            #            if self.is_mutex(effectA, effectB):
+            if self.parent_layer.is_mutex(effectA, effectB):
+                ret = True
                 break
+            print(ret)
         return ret
 
 
@@ -79,12 +82,18 @@ class LiteralLayer(BaseLiteralLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        raise NotImplementedError
+        ret = True  # type: bool
+        for (effectA, effectB) in chain(product(self.parent_layer, self.parents[literalA]),
+                                        product(self.parent_layer, self.parents[literalB])):
+            if self.is_mutex(effectA, effectB):
+                ret = False
+                break
+        return ret
 
     def _negation(self, literalA, literalB):
         """ Return True if two literals are negations of each other """
         # TODO: implement this function
-        return not literalA == literalB
+        return literalA == ~literalB
 
 
 class PlanningGraph:
