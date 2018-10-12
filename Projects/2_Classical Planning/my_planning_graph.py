@@ -54,17 +54,11 @@ class ActionLayer(BaseActionLayer):
         layers.ActionNode
         layers.BaseLayer.parent_layer
         """
-        # TODO: implement this function
         ret = False  # type: bool
-        #        for (effectA, effectB) in chain(product(self.parent_layer, self.parents[actionB]),
-        #                                        product(self.parent_layer, self.parents[actionA])):
         for (effectA, effectB) in product(self.parents[actionA], self.parents[actionB]):
-            # print(actionA, actionB, effectA, effectB)
-            #            if self.is_mutex(effectA, effectB):
             if self.parent_layer.is_mutex(effectA, effectB):
                 ret = True
                 break
-            #print(ret)
         return ret
 
 
@@ -81,17 +75,13 @@ class LiteralLayer(BaseLiteralLayer):
         --------
         layers.BaseLayer.parent_layer
         """
-        # TODO: implement this function
         for action1, action2 in product(self.parents[literalA], self.parents[literalB]):
             if not self.parent_layer.is_mutex(action1, action2):
                 return False
         return True
 
-
-
     def _negation(self, literalA, literalB):
         """ Return True if two literals are negations of each other """
-        # TODO: implement this function
         return literalA == ~literalB
 
 
@@ -186,6 +176,7 @@ class PlanningGraph:
         WARNING: you should expect long runtimes using this heuristic with A*
         """
         # TODO: implement maxlevel heuristic
+
         raise NotImplementedError
 
     def h_setlevel(self):
