@@ -145,8 +145,14 @@ class PlanningGraph:
         --------
         Russell-Norvig 10.3.1 (3rd Edition)
         """
-        # TODO: implement this function
-        raise NotImplementedError
+        costs = self._levelcosts()
+        return sum(costs)
+
+    def _levelcost(self, goal):
+        for index, layer in enumerate(self.literal_layers):
+            if goal in layer:
+                return index
+        raise ValueError('Did not find goal')
 
     def h_maxlevel(self):
         """ Calculate the max level heuristic for the planning graph
@@ -175,9 +181,15 @@ class PlanningGraph:
         -----
         WARNING: you should expect long runtimes using this heuristic with A*
         """
-        # TODO: implement maxlevel heuristic
+        costs = self._levelcosts()
+        return max(costs)
 
-        raise NotImplementedError
+    def _levelcosts(self):
+        costs = []
+        self.fill()
+        for goal in self.goal:
+            costs.append(self._levelcost(goal))
+        return costs
 
     def h_setlevel(self):
         """ Calculate the set level heuristic for the planning graph
@@ -201,8 +213,23 @@ class PlanningGraph:
         -----
         WARNING: you should expect long runtimes using this heuristic on complex problems
         """
-        # TODO: implement setlevel heuristic
-        raise NotImplementedError
+        self.fill()
+        for index, layer in enumerate(self.literal_layers):
+            allGoalsMet = True
+            for goal in self.goal:
+                if not goal in layer:
+                    allGoalsMet = False
+            if not allGoalsMet:
+                continue
+
+            goalsAreMutex = False
+            for goalA, goalB in product(self.goal, self.goal):
+                if layer.is_mutex(goalA, goalB):
+                    goalsAreMutex = True
+
+            if not goalsAreMutex:
+                return index
+        raise ValueError("setLevel")
 
     ##############################################################################
     #                     DO NOT MODIFY CODE BELOW THIS LINE                     #
