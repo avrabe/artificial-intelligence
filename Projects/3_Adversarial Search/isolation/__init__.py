@@ -2,12 +2,9 @@
 ###############################################################################
 #                          DO NOT MODIFY THIS FILE                            #
 ###############################################################################
-import inspect
 import logging
-import sys
 import textwrap
 import time
-
 from collections import namedtuple
 from enum import Enum
 from multiprocessing import Process, Pipe
@@ -41,6 +38,7 @@ History: {}
 Winner: {}
 Loser: {}
 """
+SHORT_INFO = """Win:: {}.append({})"""
 
 class Status(Enum):
     NORMAL = 0
@@ -121,7 +119,7 @@ def _play(agents, game_state, time_limit, match_id, debug=False):
     winner = None
     status = Status.NORMAL
     players = [a.agent_class(player_id=i) for i, a in enumerate(agents)]
-    logger.info(GAME_INFO.format(initial_state, *agents))
+    # logger.info(GAME_INFO.format(initial_state, *agents))
     while not game_state.terminal_test():
         active_idx = game_state.player()
 
@@ -157,7 +155,54 @@ def _play(agents, game_state, time_limit, match_id, debug=False):
         if game_state.utility(active_idx) > 0:
             winner, loser = loser, winner  # swap winner/loser if active player won
 
-    logger.info(RESULT_INFO.format(status, game_state, game_history, winner, loser))
+    # logger.info(RESULT_INFO.format(status, game_state, game_history, winner, loser))
+
+    iso_first = {}
+    iso_second = {}
+    # 0
+    iso = Isolation()
+    iso_first[iso.board] = int(game_history[0])
+    iso = iso.result(game_history[0])
+    if len(game_history) > 2:
+        iso_second[iso.board] = int(game_history[1])
+        # 1
+        iso = iso.result(game_history[1])
+        if len(game_history) > 3:
+            iso_first[iso.board] = int(game_history[2])
+            iso = iso.result(game_history[2])
+            if len(game_history) > 4:
+                iso_second[iso.board] = int(game_history[3])
+                # 2
+                iso = iso.result(game_history[3])
+                if len(game_history) > 5:
+                    iso_first[iso.board] = int(game_history[4])
+                    iso = iso.result(game_history[4])
+                    if len(game_history) > 6:
+                        iso_second[iso.board] = int(game_history[5])
+                        # 3
+                        iso = iso.result(game_history[5])
+                        if len(game_history) > 7:
+                            iso_first[iso.board] = int(game_history[6])
+                            iso = iso.result(game_history[6])
+                            if len(game_history) > 8:
+                                iso_second[iso.board] = int(game_history[7])
+                                # 4
+                                iso = iso.result(game_history[7])
+                                # if len(game_history) > 9:
+                                #    iso_first[iso.board] = int(game_history[8])
+                                #    iso = iso.result(game_history[8])
+                                #    if len(game_history) > 10:
+                                #        iso_second[iso.board] = int(game_history[9])
+
+    if winner is agents[0]:
+        foo = "first"
+        board_list = iso_first
+    else:
+        foo = "second"
+        board_list = iso_second
+
+    logger.info(SHORT_INFO.format(foo, board_list))
+
     return winner, game_history, match_id
 
 
