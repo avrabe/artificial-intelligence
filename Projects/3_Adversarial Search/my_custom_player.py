@@ -1,6 +1,9 @@
+import logging
+import random
 
 from sample_players import DataPlayer
 
+logger = logging.getLogger(__name__)
 
 class CustomPlayer(DataPlayer):
     """ Implement your own agent to play knight's Isolation
@@ -42,5 +45,10 @@ class CustomPlayer(DataPlayer):
         # EXAMPLE: choose a random move without any search--this function MUST
         #          call self.queue.put(ACTION) at least once before time expires
         #          (the timer is automatically managed for you)
-        import random
-        self.queue.put(random.choice(state.actions()))
+        action = random.choice(state.actions())
+        self.queue.put(action)
+        if self.context is None:
+            self.context = -1
+        self.context = self.context + 1
+        # if self.context < 4:
+        #    logger.info(self.player_id, self.context, len(state.actions()), action, state.actions())
