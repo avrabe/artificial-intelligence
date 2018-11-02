@@ -194,9 +194,13 @@ if __name__ == "__main__":
         '-t', '--time_limit', type=int, default=TIME_LIMIT,
         help="Set the maximum allowed time (in milliseconds) for each call to agent.get_action()."
     )
+    parser.add_argument(
+        '-w', '--write', type=str, default="matches.log",
+        help="Filename to log."
+    )
     args = parser.parse_args()
 
-    logging.basicConfig(filename="matches.log", filemode="w", level=logging.DEBUG)
+    logging.basicConfig(filename=args.write, filemode="w", level=logging.DEBUG)
     logging.info(
         "Search Configuration:\n" +
         "Opponent: {}\n".format(args.opponent) +
