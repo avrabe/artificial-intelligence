@@ -45,10 +45,8 @@ class CustomPlayer(DataPlayer):
         # EXAMPLE: choose a random move without any search--this function MUST
         #          call self.queue.put(ACTION) at least once before time expires
         #          (the timer is automatically managed for you)
-        action = random.choice(state.actions())
+        action = self.data.get(state.board, None)
+        if action is None:
+            action = random.choice(state.actions())
         self.queue.put(action)
-        if self.context is None:
-            self.context = -1
-        self.context = self.context + 1
-        # if self.context < 4:
-        #    logger.info(self.player_id, self.context, len(state.actions()), action, state.actions())
+
