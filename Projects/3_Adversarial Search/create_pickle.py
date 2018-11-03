@@ -1,16 +1,6 @@
 import pickle
 import os
 
-
-
-
-
-
-
-
-
-
-
 first = []
 second = []
 os.system('cat *.log | grep Win | sed -e "s/.*:: //" > m.py')

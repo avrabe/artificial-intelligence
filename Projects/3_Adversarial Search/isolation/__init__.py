@@ -2,6 +2,7 @@
 ###############################################################################
 #                          DO NOT MODIFY THIS FILE                            #
 ###############################################################################
+import random
 import logging
 import textwrap
 import time
@@ -160,16 +161,17 @@ def _play(agents, game_state, time_limit, match_id, debug=False):
         if game_state.utility(active_idx) > 0:
             winner, loser = loser, winner  # swap winner/loser if active player won
 
-    # logger.info(RESULT_INFO.format(status, game_state, game_history, winner, loser))
+    #logger.info(RESULT_INFO.format(status, game_state, game_history, winner, loser))
 
     iso_first = {}
     iso_second = {}
     # 2
     iso = reuse_game_state
-    iso_first[iso.board] = int(game_history[0])
-    iso = iso.result(game_history[0])
-    if len(game_history) > 2:
-        iso_second[iso.board] = int(game_history[1])
+    if len(game_history) > 1:
+        iso_first[iso.board] = int(game_history[0])
+        iso = iso.result(game_history[0])
+        if len(game_history) > 2:
+            iso_second[iso.board] = int(game_history[1])
     #    # 3
     #    iso = iso.result(game_history[1])
     #    if len(game_history) > 3:
@@ -212,25 +214,27 @@ def _play(agents, game_state, time_limit, match_id, debug=False):
 
 
 def fork_get_action(game_state, active_player, time_limit, debug=False):
-    receiver, sender = Pipe()
-    action_queue = TimedQueue(receiver, sender, time_limit)
-    if debug:  # run the search in the main process and thread
-        from copy import deepcopy
-        active_player.queue = None
-        active_player = deepcopy(active_player)
-        active_player.queue = action_queue
-        _request_action(active_player, action_queue, game_state)
-        time.sleep(time_limit / 1000)
-    else:  # spawn a new process to run the search function
-        try:
-            p = Process(target=_request_action, args=(active_player, action_queue, game_state))
-            p.start()
-            p.join(timeout=PROCESS_TIMEOUT + time_limit / 1000)
-        finally:
-            if p and p.is_alive(): p.terminate()
-    new_context, action = action_queue.get_nowait()  # raises Empty if agent did not respond
-    active_player.context = new_context
-    return action
+    return random.choice(game_state.actions())
+    #debug = True
+    #receiver, sender = Pipe()
+    #action_queue = TimedQueue(receiver, sender, time_limit)
+    #if debug:  # run the search in the main process and thread
+    #    from copy import deepcopy
+    #    active_player.queue = None
+    #    active_player = deepcopy(active_player)
+    #    active_player.queue = action_queue
+    #    _request_action(active_player, action_queue, game_state)
+    #    time.sleep(time_limit / 1000)
+    #else:  # spawn a new process to run the search function
+    #    try:
+    #        p = Process(target=_request_action, args=(active_player, action_queue, game_state))
+    #        p.start()
+    #        p.join(timeout=PROCESS_TIMEOUT + time_limit / 1000)
+    #    finally:
+    #        if p and p.is_alive(): p.terminate()
+    #new_context, action = action_queue.get_nowait()  # raises Empty if agent did not respond
+    #active_player.context = new_context
+    #return action
 
 
 def _request_action(agent, queue, game_state):
