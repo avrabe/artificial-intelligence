@@ -123,13 +123,16 @@ def _play(agents, game_state, time_limit, match_id, debug=False):
     from copy import deepcopy
     reuse_game_state = deepcopy(game_state)
 
+    active_idx = game_state.player()
+
     initial_state = game_state
+    initial_loc_first = game_state.loc[active_idx]
+    initial_loc_second = game_state.loc[1 - active_idx]
     game_history = []
     winner = None
     status = Status.NORMAL
     players = [a.agent_class(player_id=i) for i, a in enumerate(agents)]
     # logger.info(GAME_INFO.format(initial_state, *agents))
-    active_idx = game_state.player()
     winner, loser = agents[1 - active_idx], agents[active_idx]
     while not game_state.terminal_test():
         active_idx = game_state.player()
@@ -173,10 +176,10 @@ def _play(agents, game_state, time_limit, match_id, debug=False):
     # 2
     iso = reuse_game_state
     if len(game_history) > 1:
-        iso_first[iso.board] = int(game_history[0])
+        iso_first[iso.board] = (initial_loc_first, int(game_history[0]))
         iso = iso.result(game_history[0])
         if len(game_history) > 2:
-            iso_second[iso.board] = int(game_history[1])
+            iso_second[iso.board] = (initial_loc_second, game_history[1])
     #    # 3
     #    iso = iso.result(game_history[1])
     #    if len(game_history) > 3:
@@ -207,10 +210,10 @@ def _play(agents, game_state, time_limit, match_id, debug=False):
     #                             #        iso_second[iso.board] = int(game_history[9])
 
     if winner is agents[0]:
-        foo = "first"
+        foo = "f"
         board_list = iso_first
     else:
-        foo = "second"
+        foo = "s"
         board_list = iso_second
 
     logger.info(SHORT_INFO.format(foo, board_list))
