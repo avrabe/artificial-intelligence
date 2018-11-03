@@ -114,12 +114,17 @@ def _play(agents, game_state, time_limit, match_id, debug=False):
         were applied to the initial state, a status code describing the
         reason the game ended, and any error information
     """
+    from copy import deepcopy
+    reuse_game_state = deepcopy(game_state)
+
     initial_state = game_state
     game_history = []
     winner = None
     status = Status.NORMAL
     players = [a.agent_class(player_id=i) for i, a in enumerate(agents)]
     # logger.info(GAME_INFO.format(initial_state, *agents))
+    active_idx = game_state.player()
+    winner, loser = agents[1 - active_idx], agents[active_idx]
     while not game_state.terminal_test():
         active_idx = game_state.player()
 
@@ -159,40 +164,40 @@ def _play(agents, game_state, time_limit, match_id, debug=False):
 
     iso_first = {}
     iso_second = {}
-    # 0
-    iso = Isolation()
+    # 2
+    iso = reuse_game_state
     iso_first[iso.board] = int(game_history[0])
     iso = iso.result(game_history[0])
     if len(game_history) > 2:
         iso_second[iso.board] = int(game_history[1])
-        # 1
-        iso = iso.result(game_history[1])
-        if len(game_history) > 3:
-            iso_first[iso.board] = int(game_history[2])
-            iso = iso.result(game_history[2])
-            if len(game_history) > 4:
-                iso_second[iso.board] = int(game_history[3])
-                # 2
-                iso = iso.result(game_history[3])
-                if len(game_history) > 5:
-                    iso_first[iso.board] = int(game_history[4])
-                    iso = iso.result(game_history[4])
-                    if len(game_history) > 6:
-                        iso_second[iso.board] = int(game_history[5])
-                        # 3
-                        iso = iso.result(game_history[5])
-                        if len(game_history) > 7:
-                            iso_first[iso.board] = int(game_history[6])
-                            iso = iso.result(game_history[6])
-                            if len(game_history) > 8:
-                                iso_second[iso.board] = int(game_history[7])
-                                # 4
-                                iso = iso.result(game_history[7])
-                                # if len(game_history) > 9:
-                                #    iso_first[iso.board] = int(game_history[8])
-                                #    iso = iso.result(game_history[8])
-                                #    if len(game_history) > 10:
-                                #        iso_second[iso.board] = int(game_history[9])
+    #    # 3
+    #    iso = iso.result(game_history[1])
+    #    if len(game_history) > 3:
+    #        iso_first[iso.board] = int(game_history[2])
+    #        iso = iso.result(game_history[2])
+    #        if len(game_history) > 4:
+    #            iso_second[iso.board] = int(game_history[3])
+    #            # 4
+    #            iso = iso.result(game_history[3])
+    #            if len(game_history) > 5:
+    #                iso_first[iso.board] = int(game_history[4])
+    #                iso = iso.result(game_history[4])
+    #                if len(game_history) > 6:
+    #                    iso_second[iso.board] = int(game_history[5])
+    #                     # 3
+    #                     iso = iso.result(game_history[5])
+    #                     if len(game_history) > 7:
+    #                         iso_first[iso.board] = int(game_history[6])
+    #                         iso = iso.result(game_history[6])
+    #                         if len(game_history) > 8:
+    #                             iso_second[iso.board] = int(game_history[7])
+    #                             # 4
+    #                             iso = iso.result(game_history[7])
+    #                             # if len(game_history) > 9:
+    #                             #    iso_first[iso.board] = int(game_history[8])
+    #                             #    iso = iso.result(game_history[8])
+    #                             #    if len(game_history) > 10:
+    #                             #        iso_second[iso.board] = int(game_history[9])
 
     if winner is agents[0]:
         foo = "first"

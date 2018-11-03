@@ -83,20 +83,27 @@ def play_matches(custom_agent, test_agent, cli_args):
     time, and then lose when their opponent uses that move against them).
     """
     matches = []
+    counter = 0
     for match_id in range(cli_args.rounds):
-        state = Isolation()
-        matches.append(Match(
-            players=(test_agent, custom_agent),
-            initial_state=state,
-            time_limit=cli_args.time_limit,
-            match_id=2 * match_id,
-            debug_flag=cli_args.debug))
-        matches.append(Match(
-            players=(custom_agent, test_agent),
-            initial_state=state,
-            time_limit=cli_args.time_limit,
-            match_id=2 * match_id + 1,
-            debug_flag=cli_args.debug))
+        start_state = Isolation()
+        counter += 1
+        for action in start_state.actions():
+            first_state = start_state.result(action)
+            for action_s in first_state.actions():
+                # print(action,action_s)
+                second_state = first_state.result(action_s)
+                for action_t in second_state.actions():
+                    # print(action,action_s)
+                    third_state = second_state.result(action_t)
+                    for action_f in third_state.actions():
+                        # print(action,action_s)
+                        state = third_state.result(action_f)
+                        matches.append(Match(
+                            players=(test_agent, custom_agent),
+                            initial_state=state,
+                            time_limit=cli_args.time_limit,
+                            match_id=counter,
+                            debug_flag=cli_args.debug))
 
     # Run all matches -- must be done before fair matches in order to populate
     # the first move from each player; these moves are reused in the fair matches
