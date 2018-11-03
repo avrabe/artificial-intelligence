@@ -5,6 +5,7 @@ from sample_players import DataPlayer
 
 logger = logging.getLogger(__name__)
 
+
 class CustomPlayer(DataPlayer):
     """ Implement your own agent to play knight's Isolation
 
@@ -22,6 +23,7 @@ class CustomPlayer(DataPlayer):
       any pickleable object to the self.context attribute.
     **********************************************************************
     """
+
     def get_action(self, state):
         """ Employ an adversarial search technique to choose an action
         available in the current state calls self.queue.put(ACTION) at least
@@ -45,8 +47,17 @@ class CustomPlayer(DataPlayer):
         # EXAMPLE: choose a random move without any search--this function MUST
         #          call self.queue.put(ACTION) at least once before time expires
         #          (the timer is automatically managed for you)
-        action = self.data.get(state.board, None)
-        if action is None:
-            action = random.choice(state.actions())
-        self.queue.put(action)
+        board = state.board
+        locs = state.locs
+        string = '{} {} {}'.format(board, locs[0], locs[1])
 
+        action = self.data[state.player()].get(string, None)
+        if action is None:
+            i = random.choice(state.actions())
+        else:
+            for i in state.actions():
+                if int(i) == action:
+                    a = i
+            print("#", action, state.actions())
+
+        self.queue.put(i)
