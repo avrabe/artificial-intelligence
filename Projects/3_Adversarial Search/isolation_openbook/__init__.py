@@ -126,8 +126,7 @@ def _play(agents, game_state, time_limit, match_id, debug=False):
     active_idx = game_state.player()
 
     initial_state = game_state
-    initial_loc_first = game_state.loc[active_idx]
-    initial_loc_second = game_state.loc[1 - active_idx]
+    initial_locs = game_state.locs
     game_history = []
     winner = None
     status = Status.NORMAL
@@ -176,10 +175,10 @@ def _play(agents, game_state, time_limit, match_id, debug=False):
     # 2
     iso = reuse_game_state
     if len(game_history) > 1:
-        iso_first[iso.board] = (initial_loc_first, int(game_history[0]))
+        iso_first[iso.board] = (initial_locs, int(game_history[0]))
         iso = iso.result(game_history[0])
         if len(game_history) > 2:
-            iso_second[iso.board] = (initial_loc_second, game_history[1])
+            iso_second[iso.board] = (initial_locs, int(game_history[1]))
     #    # 3
     #    iso = iso.result(game_history[1])
     #    if len(game_history) > 3:
