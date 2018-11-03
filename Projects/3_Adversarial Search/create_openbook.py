@@ -7,7 +7,7 @@ import textwrap
 from collections import namedtuple
 from multiprocessing.pool import ThreadPool as Pool
 
-from isolation import Isolation, Agent, play
+from isolation_openbook import Isolation, Agent, play
 from my_custom_player import CustomPlayer
 from sample_players import RandomPlayer, GreedyPlayer, MinimaxPlayer
 
